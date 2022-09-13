@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pie Portlet</title>
+    <%- include('../header/header-styling.ejs') -%> <%-
+    include('pie-portlet-styling.ejs') -%>
+  </head>
+  <body>
+    <div class="pie-header">
+      <h1 class="pie-title"></h1>
+    </div>
+    <div class="pie-header-bottom"></div>
+    <div class="description-container">
+      <span class="description-label">Description</span>
+      <span class="description-content"> </span>
+    </div>
+    <div class="pie-container">
+      <div class="pie-content">
+        <div class="pie-chart-div"></div>
+        <div class="pie-general">
+          <span class="total-cost-usage-key">Total Cost:</span>
+          <span class="total-cost-usage-value"></span>
+        </div>
+        <div id="pie-legendDivLine"></div>
+        <div class="pie-legendwrapper">
+          <div id="pie-second-legendDivLine"></div>
+        </div>
+      </div>
+    </div>
+    <div class="pie-table-container"></div>
+    <div class="extra-message">No Data Available</div>
+  </body>
+</html>

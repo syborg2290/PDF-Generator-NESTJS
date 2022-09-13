@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Portlet</title>
+    <%- include('../header/header-styling.ejs') -%> <%-
+    include('map-portlet-styling.ejs') -%>
+  </head>
+  <body>
+    <div class="map-header">
+      <h1 class="map-title"></h1>
+    </div>
+    <div class="map-header-bottom"></div>
+    <div class="description-container">
+      <span class="description-label">Description</span>
+      <span class="description-content"> </span>
+    </div>
+    <div class="map-container">
+      <div class="map-chartdiv"></div>
+    </div>
+    <div class="map-table-container">
+      <label class="map-table-heading-container">
+        <span class="map-table-heading">Regional Cost Distribution</span>
+      </label>
+      <div class="map-output-table" id="map-first-table"></div>
+    </div>
+    <div id="pdf-other-tables"></div>
+    <div class="extra-message">No Data Available</div>
+  </body>
+</html>

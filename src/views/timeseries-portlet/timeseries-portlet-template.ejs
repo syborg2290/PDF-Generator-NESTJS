@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timeseries Portlet</title>
+    <%- include('../header/header-styling.ejs') -%> <%-
+    include('timeseries-portlet-styling.ejs') -%>
+  </head>
+  <body>
+    <div class="time-series-pdf-header">
+      <h1 class="time-series-title"></h1>
+    </div>
+    <div class="time-series-header-bottom"></div>
+    <div class="description-container">
+      <span class="description-label">Description</span>
+      <span class="description-content"> </span>
+    </div>
+    <div class="time-series-container">
+      <div class="time-series-content">
+        <div class="time-series-chart-div" id="time-series-chartdiv"></div>
+        <div class="time-series-legendwrapper">
+          <div
+            id="time-series-legenddiv"
+            class="time-series-legendDivLine"
+          ></div>
+        </div>
+      </div>
+    </div>
+    <div class="time-series-table-container"></div>
+    <div class="extra-message">No Data Available</div>
+  </body>
+</html>
