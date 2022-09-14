@@ -200,7 +200,6 @@ export class PdfReportService extends LoggerClass {
                 'description.json',
             )
             .then((response) => {
-              this.logger.log(response.data);
               if (response.data && response.data['checkDescription']) {
                 insightData['data']['checkDescription'] =
                   response.data['checkDescription'];
@@ -274,7 +273,7 @@ export class PdfReportService extends LoggerClass {
 
       await this.mergeMultiplePDF(this.pdfFiles, finalFileName);
 
-      const datab = fs.readFileSync(finalFileName, { encoding: 'base64' });
+      // const datab = fs.readFileSync(finalFileName, { encoding: 'utf-8' });
       const dataS3 = fs.readFileSync(finalFileName);
 
       // Uploading PDF To S3
@@ -284,7 +283,7 @@ export class PdfReportService extends LoggerClass {
         Bucket: 'centilytics-reporting',
         Key: finalFileName,
         ContentType: 'application/pdf',
-        Body: Buffer.alloc(dataS3.byteLength, datab, 'binary'),
+        Body: Buffer.alloc(dataS3.byteLength, dataS3, 'binary'),
         ContentEncoding: 'base64',
       };
 
@@ -293,7 +292,7 @@ export class PdfReportService extends LoggerClass {
       this.logger.log('Uploaded To S3....................');
 
       // return new Blob([datab], { type: 'application/pdf' });
-      return datab;
+      return finalFileName;
 
       // if (!testing) {
       //   await this.uploadToS3(params);
@@ -340,15 +339,10 @@ export class PdfReportService extends LoggerClass {
     waitingTime: number,
     pdfOptions: puppeteer.PDFOptions,
   ) {
-    this.logger.log('working');
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(0);
-    this.logger.log('third breakpoint');
     // Generating HTML string from ejs file
-    this.logger.log(ejsFileName);
     const pageContent: string = await ejs.renderFile(ejsFileName, templateData);
-    this.logger.log(pageContent);
-    this.logger.log(scriptTagContent);
 
     this.logger.log('this is page content');
     await page.setContent(pageContent, { waitUntil: 'networkidle0' });

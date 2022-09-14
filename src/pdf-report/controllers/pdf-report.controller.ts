@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Post,
+  StreamableFile
+} from '@nestjs/common';
+import { createReadStream } from 'fs';
+import { join } from 'path';
+
 // import * as express from 'express'
 import { LoggerClass } from 'src/common/classes/Logger';
 import { ImplementLogger } from 'src/common/decorators/logger.decorator';
@@ -12,10 +22,11 @@ export class PdfReportController extends LoggerClass {
   }
 
   @Post()
-  // @Header('Content-type', 'application/pdf')
+  @Header('Content-type', 'application/pdf')
   async generatePdf(@Body() req) {
-    const buffer = await this.pdfReportService.allocateBrowser(req, false);
-    return buffer;
+    const fileName = await this.pdfReportService.allocateBrowser(req, false);
+    const file = createReadStream(join(process.cwd(), fileName));
+    return new StreamableFile(file);
   }
 
   @Get()
