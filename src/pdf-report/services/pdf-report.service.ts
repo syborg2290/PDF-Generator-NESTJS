@@ -53,8 +53,8 @@ export class PdfReportService extends LoggerClass {
 
     if (!this.s3) {
       AWS.config.credentials = {
-        accessKeyId: 'AKIAVAED2LMZ4QSAX7EU',
-        secretAccessKey: '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',
+        accessKeyId: '',
+        secretAccessKey: '',
       };
       this.s3 = new AWS.S3({ region: 'ap-south-1' });
     }
@@ -267,7 +267,7 @@ export class PdfReportService extends LoggerClass {
 
       // Closing Browser
       this.logger.log('Closing Browser and Starting Merging................');
-      await browser.close();
+      // await browser.close();
 
       this.browserPoolService.browserPoolMap.set(key, {
         browser: browserInstance,

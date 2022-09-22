@@ -39,7 +39,7 @@ export class BrowserPoolService extends LoggerClass {
       };
     } else {
       const browserInstance = await puppeteer.connect({
-        browserURL: 'http://localhost:8080',
+        browserURL: 'http://3.7.251.5:8080',
       });
       // const browserInstance = await puppeteer.launch({
       //   // args: chromium.args,
