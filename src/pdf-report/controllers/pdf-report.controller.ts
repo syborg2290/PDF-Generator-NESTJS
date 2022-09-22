@@ -7,6 +7,7 @@ import {
   StreamableFile
 } from '@nestjs/common';
 import { createReadStream } from 'fs';
+import * as os from 'os';
 import { join } from 'path';
 
 // import * as express from 'express'
@@ -17,6 +18,8 @@ import { PdfReportService } from '../services/pdf-report.service';
 @Controller('pdf-report')
 @ImplementLogger
 export class PdfReportController extends LoggerClass {
+  isWin = os.platform() === 'win32';
+
   constructor(private readonly pdfReportService: PdfReportService) {
     super();
   }
@@ -25,7 +28,9 @@ export class PdfReportController extends LoggerClass {
   @Header('Content-type', 'application/pdf')
   async generatePdf(@Body() req) {
     const fileName = await this.pdfReportService.allocateBrowser(req, false);
-    const file = createReadStream(join(process.cwd(), fileName));
+    const file = createReadStream(
+      this.isWin ? join(process.cwd(), fileName) : fileName,
+    );
     return new StreamableFile(file);
   }
 

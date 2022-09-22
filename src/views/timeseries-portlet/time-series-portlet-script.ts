@@ -23,10 +23,7 @@ const timeSeriesPortlet = {
                 $('.time-series-title').attr('id',data['cloud'] + data['module'] + data['page'] + data['insight'] + 'insightText');   
                 $('.time-series-chart-div').attr('id',data['cloud'] + data['module'] + data['page'] + data['insight']);   
                 $('.time-series-table-container').attr('id',data['cloud'] + data['module'] + data['page'] + data['insight'] + 'table');   
-                $('.time-series-legendDivLine').attr('id', data['cloud'] + data['module'] + data['page'] + data['insight'] + 'legenddiv');   
-
-                // am4core.useTheme(am4themes_dark);
-                // am4core.useTheme(am4themes_animated);
+                $('.time-series-legendDivLine').attr('id', data['cloud'] + data['module'] + data['page'] + data['insight'] + 'legenddiv');
 
                 $('#' + data['cloud'] + data['module'] + data['page'] + data['insight'] + 'insightText').html(data['insightText']);
 

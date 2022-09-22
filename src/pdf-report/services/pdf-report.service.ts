@@ -20,7 +20,6 @@ import { BrowserPoolService } from './browser-pool-service';
 @ImplementLogger
 export class PdfReportService extends LoggerClass {
   footerTemplate;
-  pdfFiles;
 
   s3;
   isWin = os.platform() === 'win32';
@@ -54,8 +53,8 @@ export class PdfReportService extends LoggerClass {
 
     if (!this.s3) {
       AWS.config.credentials = {
-        accessKeyId: '',
-        secretAccessKey: '',
+        accessKeyId: 'AKIAVAED2LMZ4QSAX7EU',
+        secretAccessKey: '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',
       };
       this.s3 = new AWS.S3({ region: 'ap-south-1' });
     }
@@ -116,7 +115,7 @@ export class PdfReportService extends LoggerClass {
 
       // Setting Basic Fields
       this.logger.log('Setting Basic Fields....');
-      this.pdfFiles = [];
+      const pdfFiles = [];
       const fileName = dataResponse['fileName']
         ? dataResponse['fileName']
         : 'Report';
@@ -143,16 +142,23 @@ export class PdfReportService extends LoggerClass {
           landscape: true,
           timeout: 0,
         },
+        pdfFiles,
       );
 
       this.logger.log('second breakpoint');
 
+      this.logger.log('Data Response Modules ' + dataResponse['modules']);
+      this.logger.log(
+        'Keys of Modules ' + Object.keys(dataResponse['modules']),
+      );
       const moduleKeys = Object.keys(dataResponse['modules']);
       for (let i = 0; i < moduleKeys.length; i++) {
         this.logger.log(
           'module text',
           dataResponse['modules'][moduleKeys[i]]['moduleText'],
         );
+        this.logger.log('Temp Folder Path' + this.tempPath);
+        this.logger.log('Calling create PDF');
 
         await this.createPdf(
           browser,
@@ -171,6 +177,7 @@ export class PdfReportService extends LoggerClass {
             landscape: true,
             timeout: 0,
           },
+          pdfFiles,
         );
 
         for (
@@ -251,6 +258,7 @@ export class PdfReportService extends LoggerClass {
                 bottom: '40px',
               },
             },
+            pdfFiles,
           );
         }
       }
@@ -271,7 +279,7 @@ export class PdfReportService extends LoggerClass {
       const finalFileName =
         this.tempPath + fileName + new Date().getTime() + '.pdf';
 
-      await this.mergeMultiplePDF(this.pdfFiles, finalFileName);
+      await this.mergeMultiplePDF(pdfFiles, finalFileName);
 
       // const datab = fs.readFileSync(finalFileName, { encoding: 'utf-8' });
       const dataS3 = fs.readFileSync(finalFileName);
@@ -338,7 +346,9 @@ export class PdfReportService extends LoggerClass {
     scriptTagContent: any,
     waitingTime: number,
     pdfOptions: puppeteer.PDFOptions,
+    pdfFiles: string[],
   ) {
+    this.logger.log('PDF path' + pdfOptions.path);
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(0);
     // Generating HTML string from ejs file
@@ -357,7 +367,7 @@ export class PdfReportService extends LoggerClass {
     await page.emulateMediaType('screen');
     await page.pdf(pdfOptions);
     this.logger.log('a pdf generated');
-    this.pdfFiles.push(pdfOptions.path);
+    pdfFiles.push(pdfOptions.path);
   }
 
   async setter(data) {

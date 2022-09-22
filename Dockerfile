@@ -28,7 +28,7 @@ COPY --from=BUILD_IMAGE /usr/src/app/dist/views /home/views
 
 
 
-EXPOSE 3000
+EXPOSE 80
 
 ENTRYPOINT ["node"]
 

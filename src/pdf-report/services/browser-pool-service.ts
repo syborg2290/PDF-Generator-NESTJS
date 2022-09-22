@@ -38,16 +38,16 @@ export class BrowserPoolService extends LoggerClass {
         value: this.browserPoolMap.get(instanceRunningLeastTask),
       };
     } else {
-      // const browserInstance = await puppeteer.connect({
-      //   browserURL: 'http://43.205.133.21:9222',
-      // });
-      const browserInstance = await puppeteer.launch({
-        // args: chromium.args,
-        // defaultViewport: chromium.defaultViewport,
-        executablePath:
-          'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        headless: true,
+      const browserInstance = await puppeteer.connect({
+        browserURL: 'http://localhost:8080',
       });
+      // const browserInstance = await puppeteer.launch({
+      //   // args: chromium.args,
+      //   // defaultViewport: chromium.defaultViewport,
+      //   executablePath:
+      //     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      //   headless: true,
+      // });
       const key = this.generateUniqueKey(12);
       this.browserPoolMap.set(key, {
         browser: browserInstance,
