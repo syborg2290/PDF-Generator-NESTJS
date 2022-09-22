@@ -6,13 +6,23 @@ import { LoggerClass } from './../../common/classes/Logger';
 @Injectable()
 @ImplementLogger
 export class BrowserPoolService extends LoggerClass {
-  maxConcurrencyLimit = 30;
+  maxConcurrencyLimit = 100;
   browserPoolMap = new Map();
+  lastTimeStamp = null;
   constructor() {
     super();
   }
 
   async getBrowser(forceNew = false) {
+    // If two requests have a difference of 100 seconds , resetting the browserPool.
+    if (
+      (this.lastTimeStamp &&
+        this.lastTimeStamp - new Date().getTime() > 100000) ||
+      !this.lastTimeStamp
+    ) {
+      this.browserPoolMap = new Map();
+    }
+    this.lastTimeStamp = new Date().getTime();
     this.logger.log(this.browserPoolMap.size);
     if (this.browserPoolMap.size > this.maxConcurrencyLimit && !forceNew) {
       this.logger.log('here first');
