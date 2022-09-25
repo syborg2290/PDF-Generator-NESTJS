@@ -5,6 +5,7 @@ import {
   WinstonModule
 } from 'nest-winston';
 // import { OpenTelemetryModule } from 'nestjs-otel';
+import { ConfigModule } from '@nestjs/config';
 import * as winston from 'winston';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -62,6 +63,7 @@ const transports = {
     HttpModule,
     WinstonModule.forRoot(transports),
     PdfReportModule,
+    ConfigModule.forRoot(),
     // This can be used to apply API rate limiting
     // ThrottlerModule.forRoot({
     //   ttl: 5000,

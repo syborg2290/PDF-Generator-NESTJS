@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Header,
-  Post,
-  StreamableFile
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, StreamableFile } from '@nestjs/common';
 import { createReadStream } from 'fs';
 import * as os from 'os';
 import { join } from 'path';
@@ -25,13 +18,22 @@ export class PdfReportController extends LoggerClass {
   }
 
   @Post()
-  @Header('Content-type', 'application/pdf')
+  // @Header('Content-type', 'application/pdf')
   async generatePdf(@Body() req) {
-    const fileName = await this.pdfReportService.allocateBrowser(req, false);
-    const file = createReadStream(
-      this.isWin ? join(process.cwd(), fileName) : fileName,
+    const responseData = await this.pdfReportService.allocateBrowser(
+      req,
+      false,
     );
-    return new StreamableFile(file);
+    if (req['responseType'] === 'PRE_SIGNED_URL') {
+      return responseData['preSignedURL'];
+    } else if (req['responseType'] === 'FILE_STREAM') {
+      const file = createReadStream(
+        this.isWin
+          ? join(process.cwd(), responseData['finalFileName'])
+          : responseData['finalFileName'],
+      );
+      return new StreamableFile(file);
+    }
   }
 
   @Get()

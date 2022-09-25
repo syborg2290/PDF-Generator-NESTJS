@@ -20,10 +20,12 @@ import { BrowserPoolService } from './browser-pool-service';
 @ImplementLogger
 export class PdfReportService extends LoggerClass {
   footerTemplate;
-
   s3;
   isWin = os.platform() === 'win32';
   tempPath = this.isWin ? 'src/tmpPdf/' : resolve('./tmpPdf/');
+  bucketName = null;
+  reportKey = null;
+  signedUrlExpireSeconds = 60 * 5;
 
   constructor(private browserPoolService: BrowserPoolService) {
     super();
@@ -48,13 +50,18 @@ export class PdfReportService extends LoggerClass {
       dataResponse = JSON.parse(JSON.stringify(event));
     }
 
-    const bucketName = dataResponse['bucketName'];
-    const reportKey = dataResponse['reportKey'];
+    if (dataResponse['bucketName']) {
+      this.bucketName = dataResponse['bucketName'];
+    }
+
+    if (dataResponse['reportKey']) {
+      this.reportKey = dataResponse['reportKey'];
+    }
 
     if (!this.s3) {
       AWS.config.credentials = {
-        accessKeyId: '',
-        secretAccessKey: '',
+        accessKeyId: process.env.ACCESS_KEY,
+        secretAccessKey: process.env.SECRET_KEY,
       };
       this.s3 = new AWS.S3({ region: 'ap-south-1' });
     }
@@ -288,19 +295,23 @@ export class PdfReportService extends LoggerClass {
       this.logger.log('Uploading To S3....................');
 
       const params = {
-        Bucket: 'centilytics-reporting',
-        Key: finalFileName,
+        Bucket: this.bucketName ? this.bucketName : 'centilytics-reporting',
+        Key: this.reportKey ? this.reportKey : finalFileName,
         ContentType: 'application/pdf',
         Body: Buffer.alloc(dataS3.byteLength, dataS3, 'binary'),
         ContentEncoding: 'base64',
       };
-
-      await this.uploadToS3(params);
+      const preSignedURL = await this.uploadToS3(params, finalFileName);
 
       this.logger.log('Uploaded To S3....................');
+      this.logger.log('Pre-Signed URL is ', preSignedURL);
+
+      return {
+        preSignedURL,
+        finalFileName,
+      };
 
       // return new Blob([datab], { type: 'application/pdf' });
-      return finalFileName;
 
       // if (!testing) {
       //   await this.uploadToS3(params);
@@ -370,18 +381,33 @@ export class PdfReportService extends LoggerClass {
     pdfFiles.push(pdfOptions.path);
   }
 
-  async setter(data) {
-    this.tempPath = data['tempPath'];
+  // async setter(data) {
+  //   this.tempPath = data['tempPath'];
 
-    this.logger.log('using accessKeyId:', data['accessKeyId']);
-    this.s3 = new AWS.S3({
-      secretAccessKey: data['secretAccessKey'],
-      accessKeyId: data['accessKeyId'],
-      region: data['region'],
+  //   this.logger.log('using accessKeyId:', data['accessKeyId']);
+  //   this.s3 = new AWS.S3({
+  //     secretAccessKey: data['secretAccessKey'],
+  //     accessKeyId: data['accessKeyId'],
+  //     region: data['region'],
+  //   });
+  // }
+
+  uploadToS3 = async (params, finalFileName) => {
+    await this.s3.putObject(params).promise();
+    const preSignedURL = new Promise((resolve, reject) => {
+      this.s3.getSignedUrl(
+        'getObject',
+        {
+          Bucket: this.bucketName ? this.bucketName : 'centilytics-reporting',
+          Key: this.reportKey ? this.reportKey : finalFileName,
+          Expires: this.signedUrlExpireSeconds,
+        },
+        (err, url) => {
+          this.logger.log(url);
+          resolve(url);
+        },
+      );
     });
-  }
-
-  uploadToS3 = async (params) => {
-    return await this.s3.putObject(params).promise();
+    return preSignedURL;
   };
 }
