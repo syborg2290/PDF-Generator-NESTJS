@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stack-bar Portlet</title>
+    <%- include('../header/header-styling.ejs') -%> <%-
+    include('stack-bar-portlet-styling.ejs') -%>
+  </head>
+  <body>
+    <div class="header">
+      <h1 id="title"></h1>
+    </div>
+    <div class="header-bottom"></div>
+    <div class="chart-container">
+      <div id="chart-div"></div>
+    </div>
+    <div id="table" class="table-container"></div>
+
+    <div class="extra-message">No Data Available</div>
+  </body>
+</html>

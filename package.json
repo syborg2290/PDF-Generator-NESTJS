@@ -38,6 +38,7 @@
     "nest-winston": "^1.6.2",
     "puppeteer-core": "^13.6.0",
     "reflect-metadata": "^0.1.13",
+    "request": "2.88.0",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "winston": "^3.7.2",

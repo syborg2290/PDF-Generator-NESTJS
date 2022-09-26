@@ -13,6 +13,7 @@ import header from '../../views/header/header-script';
 import moduleFrontPage from '../../views/module-front-page/module-front-page-script';
 import headerHandler from '../../views/pdf-front-page/pdf-front-page-script';
 import portlet from '../../views/portlet';
+import getTimeOutForPortletType from '../../views/timeoutConfig';
 import { LoggerClass } from './../../common/classes/Logger';
 import { BrowserPoolService } from './browser-pool-service';
 
@@ -185,7 +186,7 @@ export class PdfReportService extends LoggerClass {
             dataResponse,
             moduleFrontPage.scriptsToImport,
             moduleFrontPage.script(dataResponse['modules'][moduleKeys[i]]),
-            1000,
+            100,
             {
               path: this.tempPath + fileName + new Date().getTime() + '.pdf',
               format: 'LETTER',
@@ -206,6 +207,11 @@ export class PdfReportService extends LoggerClass {
         ) {
           const insightData =
             dataResponse['modules'][moduleKeys[i]]['insights'][j];
+
+          const pageLoadTimeout = getTimeOutForPortletType(
+            insightData['portletType'].toLowerCase(),
+            insightData['data'],
+          );
 
           const invocationType = insightData['data']['invocationType']
             ? insightData['data']['invocationType']
@@ -272,8 +278,9 @@ export class PdfReportService extends LoggerClass {
               header.scriptsToImport,
               portlet[insightData['portletType'].toLowerCase()]['script'](
                 insightData['data'],
+                pageLoadTimeout,
               ),
-              3000,
+              pageLoadTimeout,
               {
                 path: this.tempPath + fileName + new Date().getTime() + '.pdf',
                 format: 'Letter',
