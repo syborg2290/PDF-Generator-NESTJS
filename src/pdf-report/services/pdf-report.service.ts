@@ -40,6 +40,8 @@ export class PdfReportService extends LoggerClass {
 
   async handler(browserInstance, event, testing?) {
     let dataResponse = null;
+    const insightsPDFCreationPromiseList = [];
+
     if (event['s3Url']) {
       // hit api
       this.logger.log('GETTING DATA FROM S3');
@@ -134,23 +136,28 @@ export class PdfReportService extends LoggerClass {
 
       this.logger.log('first breakpoint');
 
-      await this.createPdf(
-        browser,
-        this.isWin
-          ? 'src/views/pdf-front-page/pdf-front-page-template.ejs'
-          : resolve('../../views/pdf-front-page/pdf-front-page-template.ejs'),
-        dataResponse,
-        headerHandler.scriptsToImport,
-        headerHandler.script(dataResponse),
-        1000,
-        {
-          path: this.tempPath + fileName + new Date().getTime() + '.pdf',
-          format: 'LETTER',
-          landscape: true,
-          timeout: 0,
-        },
-        pdfFiles,
-      );
+      const frontPagePDFCreationPromise = new Promise((res, rej) => {
+        this.createPdf(
+          browser,
+          this.isWin
+            ? 'src/views/pdf-front-page/pdf-front-page-template.ejs'
+            : resolve('../../views/pdf-front-page/pdf-front-page-template.ejs'),
+          dataResponse,
+          headerHandler.scriptsToImport,
+          headerHandler.script(dataResponse),
+          1000,
+          {
+            path: this.tempPath + fileName + new Date().getTime() + '.pdf',
+            format: 'LETTER',
+            landscape: true,
+            timeout: 0,
+          },
+          pdfFiles,
+          res,
+        );
+      });
+
+      insightsPDFCreationPromiseList.push(frontPagePDFCreationPromise);
 
       this.logger.log('second breakpoint');
 
@@ -167,25 +174,30 @@ export class PdfReportService extends LoggerClass {
         this.logger.log('Temp Folder Path' + this.tempPath);
         this.logger.log('Calling create PDF');
 
-        await this.createPdf(
-          browser,
-          this.isWin
-            ? 'src/views/module-front-page/module-front-page-template.ejs'
-            : resolve(
-                '../../views/module-front-page/module-front-page-template.ejs',
-              ),
-          dataResponse,
-          moduleFrontPage.scriptsToImport,
-          moduleFrontPage.script(dataResponse['modules'][moduleKeys[i]]),
-          1000,
-          {
-            path: this.tempPath + fileName + new Date().getTime() + '.pdf',
-            format: 'LETTER',
-            landscape: true,
-            timeout: 0,
-          },
-          pdfFiles,
-        );
+        const modulePDFCreationPromise = new Promise((res, rej) => {
+          this.createPdf(
+            browser,
+            this.isWin
+              ? 'src/views/module-front-page/module-front-page-template.ejs'
+              : resolve(
+                  '../../views/module-front-page/module-front-page-template.ejs',
+                ),
+            dataResponse,
+            moduleFrontPage.scriptsToImport,
+            moduleFrontPage.script(dataResponse['modules'][moduleKeys[i]]),
+            1000,
+            {
+              path: this.tempPath + fileName + new Date().getTime() + '.pdf',
+              format: 'LETTER',
+              landscape: true,
+              timeout: 0,
+            },
+            pdfFiles,
+            res,
+          );
+        });
+
+        insightsPDFCreationPromiseList.push(modulePDFCreationPromise);
 
         for (
           let j = 0;
@@ -241,32 +253,48 @@ export class PdfReportService extends LoggerClass {
             templateFolderName +
             '-template.ejs';
 
-          await this.createPdf(
-            browser,
-            this.isWin ? ejsTemplatePath : resolve(ejsTemplatePath),
-            dataResponse,
-            header.scriptsToImport,
-            portlet[insightData['portletType'].toLowerCase()]['script'](
-              insightData['data'],
-            ),
-            3000,
-            {
-              path: this.tempPath + fileName + new Date().getTime() + '.pdf',
-              format: 'Letter',
-              landscape: true,
-              displayHeaderFooter: true,
-              timeout: 0,
-              headerTemplate: `<div></div>`,
-              footerTemplate: this.footerTemplate,
-              printBackground: true,
-              preferCSSPageSize: false,
-              margin: {
-                top: '40px',
-                bottom: '40px',
+          const insightBrowserInstance =
+            await this.browserPoolService.getBrowser();
+          const key = insightBrowserInstance.key;
+          const insightBrowser = insightBrowserInstance.value['browser'];
+
+          this.browserPoolService.browserPoolMap.set(key, {
+            browser: insightBrowserInstance,
+            runningTasks:
+              this.browserPoolService.browserPoolMap.get(key)['runningTasks'] +
+              1,
+          });
+          const insightPDFCreationPromise = new Promise((res, rej) => {
+            this.createPdf(
+              insightBrowser,
+              this.isWin ? ejsTemplatePath : resolve(ejsTemplatePath),
+              dataResponse,
+              header.scriptsToImport,
+              portlet[insightData['portletType'].toLowerCase()]['script'](
+                insightData['data'],
+              ),
+              3000,
+              {
+                path: this.tempPath + fileName + new Date().getTime() + '.pdf',
+                format: 'Letter',
+                landscape: true,
+                displayHeaderFooter: true,
+                timeout: 0,
+                headerTemplate: `<div></div>`,
+                footerTemplate: this.footerTemplate,
+                printBackground: true,
+                preferCSSPageSize: false,
+                margin: {
+                  top: '40px',
+                  bottom: '40px',
+                },
               },
-            },
-            pdfFiles,
-          );
+              pdfFiles,
+              res,
+            );
+          });
+
+          insightsPDFCreationPromiseList.push(insightPDFCreationPromise);
         }
       }
 
@@ -280,6 +308,14 @@ export class PdfReportService extends LoggerClass {
         browser: browserInstance,
         runningTasks:
           this.browserPoolService.browserPoolMap.get(key)['runningTasks'] - 1,
+      });
+
+      const pdfCreationPromiseResult = await Promise.allSettled(
+        insightsPDFCreationPromiseList,
+      );
+      this.logger.log(pdfCreationPromiseResult);
+      Object.values(pdfCreationPromiseResult).forEach((fileObj) => {
+        pdfFiles.push(fileObj['value']);
       });
 
       // Merge PDF(s)
@@ -358,6 +394,7 @@ export class PdfReportService extends LoggerClass {
     waitingTime: number,
     pdfOptions: puppeteer.PDFOptions,
     pdfFiles: string[],
+    resolveCallback?,
   ) {
     this.logger.log('PDF path' + pdfOptions.path);
     const page = await browser.newPage();
@@ -378,7 +415,12 @@ export class PdfReportService extends LoggerClass {
     await page.emulateMediaType('screen');
     await page.pdf(pdfOptions);
     this.logger.log('a pdf generated');
-    pdfFiles.push(pdfOptions.path);
+
+    if (resolveCallback) {
+      resolveCallback(pdfOptions.path);
+    } else {
+      pdfFiles.push(pdfOptions.path);
+    }
   }
 
   // async setter(data) {
